@@ -55,8 +55,8 @@ static CDVPitchDetection * cid= nil;
 - (void)stopListener:(CDVInvokedUrlCommand*)command {
     NSLog(@"Stop LIstener");
     isListening = NO;
-	[rioRef stopListening];
-    
+    [rioRef stopListening];
+    matchFrequency = 0.0;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -166,7 +166,7 @@ static CDVPitchDetection * cid= nil;
         NSLog( @"frequencyChangedWithValue: %@",jData );
         [cid.commandDelegate evalJs:js];
         
-        matchFrequency = 0.0;
+        //matchFrequency = 0.0;
     }
 	//NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
