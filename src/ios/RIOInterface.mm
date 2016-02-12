@@ -87,6 +87,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 }
 
 - (void)stopProcessingGraph {
+    NSLog(@"Stopping Listener");
     AUGraphStop(processingGraph);
 }
 
