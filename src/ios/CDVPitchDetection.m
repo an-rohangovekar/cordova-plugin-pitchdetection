@@ -16,12 +16,13 @@
 @synthesize registeredFrequencies;
 static float matchFrequency = 0.0;
 static CDVPitchDetection * cid= nil;
+static int loop = 0;
 
 //- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView
 //{
 //    self = [super initWithWebView:theWebView];
 //    if (self) {
-//        self.registeredFrequencies = [[NSMutableArray alloc] init]; 
+//        self.registeredFrequencies = [[NSMutableArray alloc] init];
 //        self.rioRef = [RIOInterface sharedInstance];
 //        [rioRef setSampleRate:44100];
 //        [rioRef setFrequency:1000];
@@ -38,7 +39,7 @@ static CDVPitchDetection * cid= nil;
     [rioRef setSampleRate:44100];
     [rioRef setFrequency:294];
     [rioRef initializeAudioSession];
-     NSLog(@"after initialize");
+    NSLog(@"after initialize");
     cid = self;
 }
 
@@ -46,7 +47,8 @@ static CDVPitchDetection * cid= nil;
 - (void)startListener:(CDVInvokedUrlCommand*)command {
     NSLog(@"Start LIstener");
     isListening = YES;
-	[rioRef startListening:self];
+    loop = [[command.arguments objectAtIndex:0] intValue];
+    [rioRef startListening:self];
     NSLog(@"Start LIstener");
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -57,6 +59,7 @@ static CDVPitchDetection * cid= nil;
     isListening = NO;
     [rioRef stopListening];
     matchFrequency = 0.0;
+    loop = 0;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -73,14 +76,14 @@ static CDVPitchDetection * cid= nil;
     for (int x = 0; x < [self.registeredFrequencies count]; x++) {
         float _frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
         
-       NSLog(@"frequency : %f", frequency);
-       NSLog(@"_frequency : %f", _frequency);
+        NSLog(@"frequency : %f", frequency);
+        NSLog(@"_frequency : %f", _frequency);
         
         if ( _frequency == frequency ) {
             found = TRUE;
         }
     }
-    NSLog(@"fpund %hhd",found);
+    NSLog(@"fpund %d",found);
     if ( !found ) {
         [self.registeredFrequencies addObject:frequencyString];
         matchFrequency = [frequencyString floatValue];
@@ -92,8 +95,8 @@ static CDVPitchDetection * cid= nil;
 }
 
 - (void)unregisterFrequency:(CDVInvokedUrlCommand*)command {
-   // NSLog(@"unregisterFrequency called");
-   // NSString* frequency = [command.arguments objectAtIndex:0];
+    // NSLog(@"unregisterFrequency called");
+    // NSString* frequency = [command.arguments objectAtIndex:0];
     //TODO
     
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"frequency unregistered"];
@@ -105,11 +108,11 @@ static CDVPitchDetection * cid= nil;
 // This method gets called by the rendering function. Do something with the new frequency
 - (void)frequencyChangedWithValue:(float)newFrequency{
     NSLog(@"frequencyChangeWithValue called %f", newFrequency);
-//	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-//    
-//    
-//	[pool drain];
-//    pool = nil;
+    //	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    //
+    //
+    //	[pool drain];
+    //    pool = nil;
     NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
     @autoreleasepool {
         NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
@@ -134,45 +137,49 @@ static CDVPitchDetection * cid= nil;
                 }
             }
         } else {
-            NSLog(@"Inside Else");
-            float minFrequency = matchFrequency - buffer;
-            float maxFrequency = matchFrequency + buffer;
-            NSLog(@"minFrequency: %f", minFrequency);
-            NSLog(@"maxFrequency: %f", maxFrequency);
-            NSLog(@"newFrequency: %f", newFrequency);
-
-            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                self.currentFrequency = matchFrequency;
+            if(loop != 0){
                 
-                [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-             
+                float minFrequency = matchFrequency - buffer;
+                float maxFrequency = matchFrequency + buffer;
+                NSLog(@"minFrequency: %f", minFrequency);
+                NSLog(@"maxFrequency: %f", maxFrequency);
+                NSLog(@"newFrequency: %f", newFrequency);
+                
+                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+                    NSLog(@"Inside Else %i",loop);
+                    self.currentFrequency = matchFrequency;
+                    loop -= 1;
+                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+                    
+                }
+            } else {
+                if(loop != -1){
+                    [cid stopListener:nil];
+                }
             }
         }
-
-
     }
 }
 
 - (void)updateFrequency {
-   NSLog( @"updateFrequency called %f",self.currentFrequency);
+    NSLog( @"updateFrequency called %f",self.currentFrequency);
     @autoreleasepool {
         NSDictionary* freqData = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:self.currentFrequency] forKey:@"frequency"];
         //NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", freqData];
         NSData *jData = [NSJSONSerialization dataWithJSONObject:freqData options:0 error:nil];
         NSString *jsData = [[NSString alloc] initWithData:jData encoding:NSUTF8StringEncoding];
-        
         NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", jsData];
         NSLog( @"js: %@",js );
         NSLog( @"frequencyChangedWithValue: %@",jData );
+        //loop -= 1;
         [cid.commandDelegate evalJs:js];
-        
         //matchFrequency = 0.0;
     }
-	//NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-
-	//[pool drain];
-	//pool = nil;
-
+    //NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    
+    //[pool drain];
+    //pool = nil;
+    
 }
 
 static CDVPitchDetection *sharedInstance = nil;
