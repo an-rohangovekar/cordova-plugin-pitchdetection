@@ -9,13 +9,13 @@ exports.registerFrequency = function ( frequency, callback, success, fail) {
     exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq]);
 },
 
-exports.startListener = function (success, fail, loop) {
+exports.startListener = function (loop) {
     console.log( "startListener ");
-    exec(success, fail, "CDVPitchDetection", "startListener", [loop]);
+    exec(null, null, "CDVPitchDetection", "startListener", [loop]);
 },
 
-exports.stopListener = function (success, fail) {
-    exec(success, fail, "CDVPitchDetection", "stopListener", [""]);
+exports.stopListener = function () {
+    exec(null, null, "CDVPitchDetection", "stopListener", [""]);
 },
 
 exports.executeCallback = function (frequency) {
