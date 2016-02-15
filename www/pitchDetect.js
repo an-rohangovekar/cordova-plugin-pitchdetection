@@ -11,11 +11,15 @@ exports.registerFrequency = function ( frequency, callback, success, fail) {
 
 exports.startListener = function (loop) {
     console.log( "startListener ");
-    exec(null, null, "CDVPitchDetection", "startListener", [loop]);
+    var success = function(){console.log('start listener success');};
+    var error = function(){console.log('start listener error');});
+    exec(success, error, "CDVPitchDetection", "startListener", [loop]);
 },
 
 exports.stopListener = function () {
-    exec(null, null, "CDVPitchDetection", "stopListener", [""]);
+    var success = function(){console.log('start listener success');};
+    var error = function(){console.log('start listener error');});
+    exec(success, error, "CDVPitchDetection", "stopListener", [""]);
 },
 
 exports.executeCallback = function (frequency) {
