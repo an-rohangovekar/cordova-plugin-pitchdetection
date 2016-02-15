@@ -27,6 +27,13 @@
                 <param name="ios-package" value="CDVPitchDetection" />
             </feature>
         </config-file>
+        
+        <!-- The app is able to run in background through audio mode -->
+        <config-file target="*-Info.plist" parent="UIBackgroundModes">
+            <array>
+                <string>audio</string>
+            </array>
+        </config-file>
 
         <header-file src="src/ios/CDVPitchDetection.h" />
         <header-file src="src/ios/CADebugMacros.h" />
