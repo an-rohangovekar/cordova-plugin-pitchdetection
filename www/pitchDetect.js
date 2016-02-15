@@ -9,9 +9,9 @@ exports.registerFrequency = function ( frequency, callback, success, fail) {
     exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq]);
 },
 
-exports.startListener = function (success, fail) {
+exports.startListener = function (success, fail, loop) {
     console.log( "startListener ");
-    exec(success, fail, "CDVPitchDetection", "startListener", [""]);
+    exec(success, fail, "CDVPitchDetection", "startListener", [loop]);
 },
 
 exports.stopListener = function (success, fail) {
