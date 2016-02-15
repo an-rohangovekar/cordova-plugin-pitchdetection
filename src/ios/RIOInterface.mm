@@ -254,7 +254,8 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
+    //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     [session setActive:YES error:&err];
     
     // After activation, update our sample rate. We need to update because there
