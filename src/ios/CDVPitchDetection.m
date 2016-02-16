@@ -35,21 +35,28 @@ static int loop = 0;
     NSLog(@"initialize");
     self.rioRef = [RIOInterface sharedInstance];
     self.registeredFrequencies = [[NSMutableArray alloc] initWithCapacity:10];
+    // matchFrequency = 0.0;
+    // [rioRef setSampleRate:44100];
+    // [rioRef setFrequency:294];
+    // [rioRef initializeAudioSession];
+    // NSLog(@"after initialize");
+    // cid = self;
+}
+
+
+- (void)startListener:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Start LIstener");
     matchFrequency = 0.0;
     [rioRef setSampleRate:44100];
     [rioRef setFrequency:294];
     [rioRef initializeAudioSession];
     NSLog(@"after initialize");
     cid = self;
-}
-
-
-- (void)startListener:(CDVInvokedUrlCommand*)command {
-    NSLog(@"Start LIstener");
     isListening = YES;
     loop = [[command.arguments objectAtIndex:0] intValue];
     [rioRef startListening:self];
     NSLog(@"Start LIstener");
+    
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
