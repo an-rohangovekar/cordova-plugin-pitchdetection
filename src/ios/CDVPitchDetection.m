@@ -59,7 +59,7 @@ static int loop = 0;
     isListening = NO;
     [rioRef stopListening];
     matchFrequency = 0.0;
-    [self.registeredFrequencies release];
+    [self.registeredFrequencies removeAllObjects];
     loop = 0;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
