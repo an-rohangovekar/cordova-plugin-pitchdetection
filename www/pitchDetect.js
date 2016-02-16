@@ -17,8 +17,8 @@ exports.startListener = function (loop) {
 },
 
 exports.stopListener = function () {
-    var success = function(){console.log('start listener success');};
-    var error = function(){console.log('start listener error');};
+    var success = function(){console.log('stop listener success');};
+    var error = function(){console.log('stop listener error');};
     exec(success, error, "CDVPitchDetection", "stopListener", [""]);
 },
 
