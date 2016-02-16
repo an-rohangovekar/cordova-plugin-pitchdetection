@@ -35,6 +35,7 @@ static int loop = 0;
     NSLog(@"initialize");
     self.rioRef = [RIOInterface sharedInstance];
     self.registeredFrequencies = [[NSMutableArray alloc] initWithCapacity:10];
+    matchFrequency = 0.0;
     // matchFrequency = 0.0;
     // [rioRef setSampleRate:44100];
        [rioRef setFrequency:16000];
@@ -46,7 +47,6 @@ static int loop = 0;
 
 - (void)startListener:(CDVInvokedUrlCommand*)command {
     NSLog(@"Start LIstener");
-    matchFrequency = 0.0;
     [rioRef setSampleRate:44100];
     //[rioRef setFrequency:294];
     [rioRef initializeAudioSession];
@@ -97,7 +97,7 @@ static int loop = 0;
         [self.registeredFrequencies addObject:frequencyString];
         matchFrequency = [frequencyString floatValue];
     }
-    NSLog(@"registerfrequency : %@", self.registeredFrequencies);
+    NSLog(@"registerfrequency : %@", matchFrequency);
     NSLog(@"Delegate Class %@", NSStringFromClass([self.commandDelegate class]));
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
