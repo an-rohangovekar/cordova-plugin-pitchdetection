@@ -32,7 +32,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     // Clean up the audio session
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    [session setActive:NO error:nil];
+    [session setActive:NO error:nil];R
     
    // [super dealloc];
 }
@@ -254,7 +254,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
+    [session setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
     [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
     [session setPreferredOutputNumberOfChannels:0 error:nil];
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
