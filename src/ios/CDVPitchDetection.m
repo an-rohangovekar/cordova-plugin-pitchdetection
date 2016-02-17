@@ -70,6 +70,7 @@ static int loop = 0;
     [self.registeredFrequencies removeAllObjects];
     loop = 0;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
