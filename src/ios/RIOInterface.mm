@@ -342,7 +342,9 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     // Disable system buffer allocation. We'll do it ourselves.
     UInt32 flag = 0;
-    //err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, kInputBus, &flag, sizeof(flag));
+    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
+                                kAudioUnitScope_Output, 
+                                kInputBus, &flag, sizeof(flag));
     
     
     // Allocate AudioBuffers for use when listening.
