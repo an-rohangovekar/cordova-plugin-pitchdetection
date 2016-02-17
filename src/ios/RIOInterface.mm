@@ -254,7 +254,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
+    [session setCategory:AVAudioSessionCategoryRecord error:&err];
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     [session setActive:YES error:&err];
     
