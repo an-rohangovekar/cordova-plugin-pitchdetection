@@ -317,9 +317,9 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
                                kAudioUnitScope_Input,
                                kInputBus, &enableInput, sizeof(enableInput));
     
-    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
+    /*err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
                                kAudioUnitScope_Output,
-                               kOutputBus, &enableOutput, sizeof(enableOutput));
+                               kOutputBus, &enableOutput, sizeof(enableOutput));*/
     
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_SetInputCallback,
                                kAudioUnitScope_Input,
