@@ -34,7 +34,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [session setActive:NO error:nil];
     
-   // [super dealloc];
+    // [super dealloc];
 }
 
 #pragma mark -
@@ -65,8 +65,8 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     self.listener = aListener;
     [self createAUProcessingGraph];
     [self initializeAndStartProcessingGraph];
-   
- }
+    
+}
 
 
 - (void)stopListening {
@@ -126,17 +126,17 @@ OSStatus RenderFFTCallback (void					*inRefCon,
     // Fill the buffer with our sampled data. If we fill our buffer, run the
     // fft.
     int read = bufferCapacity - index;
-   // NSLog(@"bufferCapacity : %d", bufferCapacity);
-  //  NSLog(@"index: %d", index);
+    // NSLog(@"bufferCapacity : %d", bufferCapacity);
+    //  NSLog(@"index: %d", index);
     //NSLog(@"read: %d", read);
     //NSLog(@"inNumberFrames: %d", inNumberFrames);
     if (read > inNumberFrames) {
-      //  NSLog(@"Inside if");
+        //  NSLog(@"Inside if");
         memcpy((SInt16 *)dataBuffer + index, THIS->bufferList->mBuffers[0].mData, inNumberFrames*sizeof(SInt16));
         THIS->index += inNumberFrames;
     } else {
         
-      //  NSLog(@"Inside else");
+        //  NSLog(@"Inside else");
         // If we enter this conditional, our buffer will be filled and we should
         // perform the FFT.
         memcpy((SInt16 *)dataBuffer + index, THIS->bufferList->mBuffers[0].mData, read*sizeof(SInt16));
@@ -172,12 +172,12 @@ OSStatus RenderFFTCallback (void					*inRefCon,
             if (curFreq > dominantFrequency) {
                 dominantFrequency = curFreq;
                 bin = (i+1)/2;
-              //  NSLog(@"bin : %d",bin);
+                //  NSLog(@"bin : %d",bin);
                 //NSLog(@"dominant frequency : %f",dominantFrequency);
             }
         }
         memset(outputBuffer, 0, n*sizeof(SInt16));
-       // NSLog(@"sample rate : %f", THIS->sampleRate);
+        // NSLog(@"sample rate : %f", THIS->sampleRate);
         //NSLog(@"Buffer Capacity : %d", bufferCapacity);
         // Update the UI with our newly acquired frequency value.
         //THIS->listener = [CDVPitchDetection sharedInstance];
@@ -191,9 +191,9 @@ OSStatus RenderFFTCallback (void					*inRefCon,
 }
 
 float MagnitudeSquared(float x, float y) {
-   // NSLog(@"MagnitudeSquared called");
+    // NSLog(@"MagnitudeSquared called");
     float mag = (x*x) + (y*y);
-   // NSLog(@"magnitudeSquared : %f", mag);
+    // NSLog(@"magnitudeSquared : %f", mag);
     return ((x*x) + (y*y));
 }
 
@@ -213,7 +213,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     outFormat.mBytesPerPacket = bytesPerSample * outFormat.mFramesPerPacket;
     outFormat.mBytesPerFrame = bytesPerSample * outFormat.mChannelsPerFrame;
     outFormat.mSampleRate = THIS->sampleRate;
- //   NSLog(@"sample rate or outFormate.msampleRate: %f", THIS.sampleRate);
+    //   NSLog(@"sample rate or outFormate.msampleRate: %f", THIS.sampleRate);
     const AudioStreamBasicDescription inFormat = THIS->streamFormat;
     
     UInt32 inSize = capacity*sizeof(SInt16);
@@ -224,22 +224,22 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 
 /* Setup our FFT */
 - (void)realFFTSetup {
-   // NSLog(@"realFFTSetup called");
+    // NSLog(@"realFFTSetup called");
     UInt32 maxFrames = 2048;
     dataBuffer = (void*)malloc(maxFrames * sizeof(SInt16));
     outputBuffer = (float*)malloc(maxFrames *sizeof(float));
     log2n = log2f(maxFrames);
     n = 1 << log2n;
     assert(n == maxFrames);
-  //  NSLog(@"maxFrames: %u", (unsigned int)maxFrames);
+    //  NSLog(@"maxFrames: %u", (unsigned int)maxFrames);
     nOver2 = maxFrames/2;
     bufferCapacity = maxFrames;
-   // NSLog(@"Buffer Capacity : %lu", bufferCapacity);
+    // NSLog(@"Buffer Capacity : %lu", bufferCapacity);
     index = 0;
     A.realp = (float *)malloc(nOver2 * sizeof(float));
-   // NSLog(@"A.realp: %f", A.realp);
+    // NSLog(@"A.realp: %f", A.realp);
     A.imagp = (float *)malloc(nOver2 * sizeof(float));
-   // NSLog(@"A.imagp: %f", A.imagp);
+    // NSLog(@"A.imagp: %f", A.imagp);
     fftSetup = vDSP_create_fftsetup(log2n, FFT_RADIX2);
 }
 
@@ -249,12 +249,13 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 // Sets up the audio session based on the properties that were set in the init
 // method.
 - (void)initializeAudioSession {
-   // NSLog(@"initializeAudioSession called");
+    // NSLog(@"initializeAudioSession called");
     NSError	*err = nil;
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryAmbient withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
+    [session setCategory:AVAudioSessionCategoryRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
+    [session setMode:AVAudioSessionModeMeasurement error:nil];
     [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
     [session setPreferredOutputNumberOfChannels:0 error:nil];
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
@@ -263,7 +264,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     // After activation, update our sample rate. We need to update because there
     // is a possibility the system cannot grant our request.
     sampleRate = [session currentHardwareSampleRate];
-   // NSLog(@"sampleRate : %f", sampleRate);
+    // NSLog(@"sampleRate : %f", sampleRate);
     
     [self realFFTSetup];
 }
@@ -318,8 +319,8 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
                                kInputBus, &enableInput, sizeof(enableInput));
     
     /*err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
-                               kAudioUnitScope_Output,
-                               kOutputBus, &enableOutput, sizeof(enableOutput));*/
+     kAudioUnitScope_Output,
+     kOutputBus, &enableOutput, sizeof(enableOutput));*/
     
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_SetInputCallback,
                                kAudioUnitScope_Input,
@@ -329,9 +330,9 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     // Set the stream format.
     size_t bytesPerSample = [self ASBDForSoundMode];
     
-   /* err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
-                               kAudioUnitScope_Output,
-                               kInputBus, &streamFormat, sizeof(streamFormat));*/
+    /* err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
+     kAudioUnitScope_Output,
+     kInputBus, &streamFormat, sizeof(streamFormat));*/
     
     err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
                                kAudioUnitScope_Input,
@@ -342,9 +343,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     // Disable system buffer allocation. We'll do it ourselves.
     UInt32 flag = 0;
-    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
-                                kAudioUnitScope_Output, 
-                                kInputBus, &flag, sizeof(flag));
+    //err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, kInputBus, &flag, sizeof(flag));
     
     
     // Allocate AudioBuffers for use when listening.
@@ -361,7 +360,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 // Set the AudioStreamBasicDescription for listening to audio data. Set the
 // stream member var here as well.
 - (size_t)ASBDForSoundMode {
-   // NSLog(@"ASBDForSoundMode called");
+    // NSLog(@"ASBDForSoundMode called");
     AudioStreamBasicDescription asbd = {0};
     size_t bytesPerSample;
     bytesPerSample = sizeof(SInt16);
