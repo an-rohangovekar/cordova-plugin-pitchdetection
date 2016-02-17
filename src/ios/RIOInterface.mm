@@ -32,7 +32,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     // Clean up the audio session
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    [session setActive:NO error:nil];R
+    [session setActive:NO error:nil];
     
    // [super dealloc];
 }
