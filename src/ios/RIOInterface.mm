@@ -254,10 +254,10 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     AVAudioSession *session = [AVAudioSession sharedInstance];
     
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
-    //[session setMode:AVAudioSessionModeMeasurement error:nil];
-    //[session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
-    //[session setPreferredOutputNumberOfChannels:0 error:nil];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
+    [session setMode:AVAudioSessionModeMeasurement error:nil];
+    [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+    [session setPreferredOutputNumberOfChannels:0 error:nil];
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     [session setActive:YES error:&err];
     
@@ -307,20 +307,21 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     // Initialize below.
     __unsafe_unretained AURenderCallbackStruct callbackStruct = {0};
     UInt32 enableInput;
-    UInt32 enableOutput;
+    //UInt32 enableOutput;
     
     // Enable input and disable output.
-    enableInput = 1; enableOutput = 0;
+    enableInput = 1;
+    //enableOutput = 0;
     callbackStruct.inputProc = RenderFFTCallback;
     callbackStruct.inputProcRefCon = (__bridge void*)self;
     
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
                                kAudioUnitScope_Input,
                                kInputBus, &enableInput, sizeof(enableInput));
-    
-    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
-                                kAudioUnitScope_Output,
-                                kOutputBus, &enableOutput, sizeof(enableOutput));
+//    
+//    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
+//                                kAudioUnitScope_Output,
+//                                kOutputBus, &enableOutput, sizeof(enableOutput));
     
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_SetInputCallback,
                                kAudioUnitScope_Input,
@@ -342,10 +343,10 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     
     // Disable system buffer allocation. We'll do it ourselves.
-    UInt32 flag = 0;
-    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
-                                kAudioUnitScope_Output, 
-                                kInputBus, &flag, sizeof(flag));
+    //UInt32 flag = 0;
+//    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
+//                                kAudioUnitScope_Output, 
+//                                kInputBus, &flag, sizeof(flag));
     
     
     // Allocate AudioBuffers for use when listening.
@@ -392,12 +393,12 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     NSLog (@"  Sample Rate:         %10.0f",  asbd.mSampleRate);
     NSLog (@"  Format ID:           %10s",    formatIDString);
-    NSLog (@"  Format Flags:        %10X",    asbd.mFormatFlags);
-    NSLog (@"  Bytes per Packet:    %10d",    asbd.mBytesPerPacket);
-    NSLog (@"  Frames per Packet:   %10d",    asbd.mFramesPerPacket);
-    NSLog (@"  Bytes per Frame:     %10d",    asbd.mBytesPerFrame);
-    NSLog (@"  Channels per Frame:  %10d",    asbd.mChannelsPerFrame);
-    NSLog (@"  Bits per Channel:    %10d",    asbd.mBitsPerChannel);
+    NSLog (@"  Format Flags:        %10X",    (unsigned int)asbd.mFormatFlags);
+    NSLog (@"  Bytes per Packet:    %10d",    (unsigned int)asbd.mBytesPerPacket);
+    NSLog (@"  Frames per Packet:   %10d",    (unsigned int)asbd.mFramesPerPacket);
+    NSLog (@"  Bytes per Frame:     %10d",    (unsigned int)asbd.mBytesPerFrame);
+    NSLog (@"  Channels per Frame:  %10d",    (unsigned int)asbd.mChannelsPerFrame);
+    NSLog (@"  Bits per Channel:    %10d",    (unsigned int)asbd.mBitsPerChannel);
 }
 
 
