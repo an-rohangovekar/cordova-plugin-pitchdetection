@@ -1,451 +1,209 @@
 //
-//  RIOInterface.m
-//  SafeSound
+//  CDVPitchDetection.m
+//  Basic_Audio_Watermarks
 //
-//  Created by Demetri Miller on 10/22/2010.
-//  Copyright 2010 Demetri Miller. All rights reserved.
+//  Created by Andrew Trice on 12/4/12.
+//
 //
 
-#import "RIOInterface.h"
-#import "CAStreamBasicDescription.h"
-#import "CAXException.h"
+#import "CDVPitchDetection.h"
 
-@implementation RIOInterface
+@implementation CDVPitchDetection
 
-@synthesize listener;
-@synthesize audioPlayerDelegate;
-@synthesize audioSessionDelegate;
-@synthesize sampleRate;
-@synthesize frequency;
+@synthesize isListening;
+@synthesize	rioRef;
+@synthesize currentFrequency;
+@synthesize registeredFrequencies;
+static float matchFrequency = 0.0;
+static CDVPitchDetection * cid= nil;
+static int loop = 0;
+
+//- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView
+//{
+//    self = [super initWithWebView:theWebView];
+//    if (self) {
+//        self.registeredFrequencies = [[NSMutableArray alloc] init];
+//        self.rioRef = [RIOInterface sharedInstance];
+//        [rioRef setSampleRate:44100];
+//        [rioRef setFrequency:1000];
+//        [rioRef initializeAudioSession];
+//    }
+//    return self;
+//}
+
+-(void)pluginInitialize{
+    NSLog(@"initialize");
+    self.rioRef = [RIOInterface sharedInstance];
+    self.registeredFrequencies = [[NSMutableArray alloc] initWithCapacity:10];
+    matchFrequency = 0.0;
+    // matchFrequency = 0.0;
+    // [rioRef setSampleRate:44100];
+       [rioRef setFrequency:16000];
+    // [rioRef initializeAudioSession];
+    // NSLog(@"after initialize");
+    // cid = self;
+}
 
 
-float MagnitudeSquared(float x, float y);
-void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t capacity);
+- (void)startListener:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Start LIstener");
+    [rioRef setSampleRate:44100];
+    //[rioRef setFrequency:294];
+    [rioRef initializeAudioSession];
+    NSLog(@"after initialize");
+    isListening = YES;
+    loop = [[command.arguments objectAtIndex:0] intValue];
+    [rioRef startListening:self];
+    NSLog(@"Start LIstener");
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    cid = self;
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
-#pragma mark -
-#pragma mark Lifecycle
+- (void)stopListener:(CDVInvokedUrlCommand*)command {
+    NSLog(@"Stop LIstener");
+    isListening = NO;
+    [rioRef stopListening];
+    matchFrequency = 0.0;
+    [self.registeredFrequencies removeAllObjects];
+    loop = 0;
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
-- (void)dealloc {
-    if (processingGraph) {
-        AUGraphStop(processingGraph);
+
+- (void)registerFrequency:(CDVInvokedUrlCommand*)command {
+    
+    NSLog(@"registerFrequency called %@", self.registeredFrequencies);
+    NSString *frequencyString = [command.arguments objectAtIndex:0];
+    float frequency = [frequencyString floatValue];
+    BOOL found = FALSE;
+    
+    NSLog(@"registerFrequency called %f",frequency);
+    for (int x = 0; x < [self.registeredFrequencies count]; x++) {
+        float _frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
+        
+        NSLog(@"frequency : %f", frequency);
+        NSLog(@"_frequency : %f", _frequency);
+        
+        if ( _frequency == frequency ) {
+            found = TRUE;
+        }
     }
-    
-    // Clean up the audio session
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    [session setActive:NO error:nil];
-    
-    // [super dealloc];
-}
-
-#pragma mark -
-#pragma mark Playback Controls
-- (void)startPlayback {
-    [self createAUProcessingGraph];
-    [self initializeAndStartProcessingGraph];
-    //AudioOutputUnitStart(ioUnit);
-}
-
-
-- (void)startPlaybackFromEncodedArray:(NSArray *)encodedArray {
-    // TODO: once we have our generated array, set up the timer to
-    // play the encoded array correctly.
-}
-
-- (void)stopPlayback {
-    AUGraphStop(processingGraph);
-    //AudioOutputUnitStop(ioUnit);
-}
-
-
-#pragma mark -
-#pragma mark Listener Controls
-- (void)startListening:(CDVPitchDetection*)aListener {
-    
-    NSLog(@"StartListening called");
-    self.listener = aListener;
-    [self createAUProcessingGraph];
-    [self initializeAndStartProcessingGraph];
-    
-}
-
-
-- (void)stopListening {
-    [self stopProcessingGraph];
-}
-
-#pragma mark -
-#pragma mark Generic Audio Controls
-- (void)initializeAndStartProcessingGraph {
-    
-    //NSLog(@"initialiseAndStartProcessingGraphp called");
-    OSStatus result = AUGraphInitialize(processingGraph);
-    if (result >= 0) {
-        AUGraphStart(processingGraph);
-    } else {
-        XThrow(result, "error initializing processing graph");
+    NSLog(@"fpund %d",found);
+    if ( !found ) {
+        [self.registeredFrequencies addObject:frequencyString];
+        matchFrequency = [frequencyString floatValue];
     }
+    NSLog(@"registerfrequency : %f", matchFrequency);
+    NSLog(@"Delegate Class %@", NSStringFromClass([self.commandDelegate class]));
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)stopProcessingGraph {
-    NSLog(@"Stopping Listener");
-    AUGraphStop(processingGraph);
+- (void)unregisterFrequency:(CDVInvokedUrlCommand*)command {
+    // NSLog(@"unregisterFrequency called");
+    // NSString* frequency = [command.arguments objectAtIndex:0];
+    //TODO
+    
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"frequency unregistered"];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-#pragma mark -
-#pragma mark Audio Rendering
-OSStatus RenderFFTCallback (void					*inRefCon,
-                            AudioUnitRenderActionFlags 	*ioActionFlags,
-                            const AudioTimeStamp			*inTimeStamp,
-                            UInt32 						inBusNumber,
-                            UInt32 						inNumberFrames,
-                            AudioBufferList				*ioData)
-{
-    RIOInterface* THIS = (__bridge RIOInterface *)inRefCon;
-    COMPLEX_SPLIT A = THIS->A;
-    void *dataBuffer = THIS->dataBuffer;
-    float *outputBuffer = THIS->outputBuffer;
-    FFTSetup fftSetup = THIS->fftSetup;
-    
-    uint32_t log2n = THIS->log2n;
-    uint32_t n = THIS->n;
-    uint32_t nOver2 = THIS->nOver2;
-    uint32_t stride = 1;
-    int bufferCapacity = THIS->bufferCapacity;
-    SInt16 index = THIS->index;
-    
-    AudioUnit rioUnit = THIS->ioUnit;
-    OSStatus renderErr;
-    UInt32 bus1 = 1;
-    
-    renderErr = AudioUnitRender(rioUnit, ioActionFlags,
-                                inTimeStamp, bus1, inNumberFrames, THIS->bufferList);
-    if (renderErr < 0) {
-        return renderErr;
-    }
-    
-    // Fill the buffer with our sampled data. If we fill our buffer, run the
-    // fft.
-    int read = bufferCapacity - index;
-    // NSLog(@"bufferCapacity : %d", bufferCapacity);
-    //  NSLog(@"index: %d", index);
-    //NSLog(@"read: %d", read);
-    //NSLog(@"inNumberFrames: %d", inNumberFrames);
-    if (read > inNumberFrames) {
-        //  NSLog(@"Inside if");
-        memcpy((SInt16 *)dataBuffer + index, THIS->bufferList->mBuffers[0].mData, inNumberFrames*sizeof(SInt16));
-        THIS->index += inNumberFrames;
-    } else {
+
+
+// This method gets called by the rendering function. Do something with the new frequency
+- (void)frequencyChangedWithValue:(float)newFrequency{
+    NSLog(@"frequencyChangeWithValue called %f", newFrequency);
+    //	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    //
+    //
+    //	[pool drain];
+    //    pool = nil;
+    NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
+    @autoreleasepool {
+        NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
         
-        //  NSLog(@"Inside else");
-        // If we enter this conditional, our buffer will be filled and we should
-        // perform the FFT.
-        memcpy((SInt16 *)dataBuffer + index, THIS->bufferList->mBuffers[0].mData, read*sizeof(SInt16));
-        
-        // Reset the index.
-        THIS->index = 0;
-        
-        /*************** FFT ***************/
-        // We want to deal with only floating point values here.
-        ConvertInt16ToFloat(THIS, dataBuffer, outputBuffer, bufferCapacity);
-        
-        /**
-         Look at the real signal as an interleaved complex vector by casting it.
-         Then call the transformation function vDSP_ctoz to get a split complex
-         vector, which for a real signal, divides into an even-odd configuration.
-         */
-        vDSP_ctoz((COMPLEX*)outputBuffer, 2, &A, 1, nOver2);
-        
-        // Carry out a Forward FFT transform.
-        vDSP_fft_zrip(fftSetup, &A, stride, log2n, FFT_FORWARD);
-        
-        // The output signal is now in a split real form. Use the vDSP_ztoc to get
-        // a split real vector.
-        vDSP_ztoc(&A, 1, (COMPLEX *)outputBuffer, 2, nOver2);
-        
-        // Determine the dominant frequency by taking the magnitude squared and
-        // saving the bin which it resides in.
-        float dominantFrequency = 0;
-        int bin = -1;
-        for (int i=0; i<n; i+=2) {
-            float curFreq = MagnitudeSquared(outputBuffer[i], outputBuffer[i+1]);
-            //NSLog(@"current frequency : %f",curFreq);
-            if (curFreq > dominantFrequency) {
-                dominantFrequency = curFreq;
-                bin = (i+1)/2;
-                //  NSLog(@"bin : %d",bin);
-                //NSLog(@"dominant frequency : %f",dominantFrequency);
+        int x = 0;
+        float buffer = 100;
+        if(self.registeredFrequencies != NULL){
+            NSLog(@"Inside If not null");
+            for (x = 0; x < [self.registeredFrequencies count]; x++) {
+                float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
+                float minFrequency = frequency - buffer;
+                float maxFrequency = frequency + buffer;
+                
+                //  NSLog(@"minFrequency: %f", minFrequency);
+                //  NSLog(@"maxFrequency: %f", maxFrequency);
+                //   NSLog(@"newFrequency: %f", newFrequency);
+                
+                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+                    self.currentFrequency = frequency;
+                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+                    break;
+                }
+            }
+        } else {
+            if(loop != 0){
+                
+                float minFrequency = matchFrequency - buffer;
+                float maxFrequency = matchFrequency + buffer;
+                NSLog(@"minFrequency: %f", minFrequency);
+                NSLog(@"maxFrequency: %f", maxFrequency);
+                NSLog(@"newFrequency: %f", newFrequency);
+                
+                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+                    NSLog(@"Inside Else %i",loop);
+                    self.currentFrequency = matchFrequency;
+                    loop -= 1;
+                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+                    
+                }
+            } else {
+                if(loop != -1){
+                    [cid stopListener:nil];
+                }
             }
         }
-        memset(outputBuffer, 0, n*sizeof(SInt16));
-        // NSLog(@"sample rate : %f", THIS->sampleRate);
-        //NSLog(@"Buffer Capacity : %d", bufferCapacity);
-        // Update the UI with our newly acquired frequency value.
-        //THIS->listener = [CDVPitchDetection sharedInstance];
-        CDVPitchDetection* pitch = [CDVPitchDetection sharedInstance];
-        [pitch frequencyChangedWithValue:bin*(THIS->sampleRate/bufferCapacity)];
-        //printf("Dominant frequency: %f \n", bin*(THIS->sampleRate/bufferCapacity));
     }
-    
-    
-    return noErr;
 }
 
-float MagnitudeSquared(float x, float y) {
-    // NSLog(@"MagnitudeSquared called");
-    float mag = (x*x) + (y*y);
-    // NSLog(@"magnitudeSquared : %f", mag);
-    return ((x*x) + (y*y));
+- (void)updateFrequency {
+    NSLog( @"updateFrequency called %f",self.currentFrequency);
+    @autoreleasepool {
+        NSDictionary* freqData = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:self.currentFrequency] forKey:@"frequency"];
+        //NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", freqData];
+        NSData *jData = [NSJSONSerialization dataWithJSONObject:freqData options:0 error:nil];
+        NSString *jsData = [[NSString alloc] initWithData:jData encoding:NSUTF8StringEncoding];
+        NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", jsData];
+        NSLog( @"js: %@",js );
+        NSLog( @"frequencyChangedWithValue: %@",jData );
+        //loop -= 1;
+        [cid.commandDelegate evalJs:js];
+        //matchFrequency = 0.0;
+    }
+    //NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+    
+    //[pool drain];
+    //pool = nil;
+    
 }
 
-void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t capacity) {
-    
-    //NSLog(@"ConvertInt16ToFloat called");
-    AudioConverterRef converter;
-    OSStatus err;
-    
-    size_t bytesPerSample = sizeof(float);
-    AudioStreamBasicDescription outFormat = {0};
-    outFormat.mFormatID = kAudioFormatLinearPCM;
-    outFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    outFormat.mBitsPerChannel = 8 * bytesPerSample;
-    outFormat.mFramesPerPacket = 1;
-    outFormat.mChannelsPerFrame = 1;
-    outFormat.mBytesPerPacket = bytesPerSample * outFormat.mFramesPerPacket;
-    outFormat.mBytesPerFrame = bytesPerSample * outFormat.mChannelsPerFrame;
-    outFormat.mSampleRate = THIS->sampleRate;
-    //   NSLog(@"sample rate or outFormate.msampleRate: %f", THIS.sampleRate);
-    const AudioStreamBasicDescription inFormat = THIS->streamFormat;
-    
-    UInt32 inSize = capacity*sizeof(SInt16);
-    UInt32 outSize = capacity*sizeof(float);
-    err = AudioConverterNew(&inFormat, &outFormat, &converter);
-    err = AudioConverterConvertBuffer(converter, inSize, buf, &outSize, outputBuf);
-}
-
-/* Setup our FFT */
-- (void)realFFTSetup {
-    // NSLog(@"realFFTSetup called");
-    UInt32 maxFrames = 2048;
-    dataBuffer = (void*)malloc(maxFrames * sizeof(SInt16));
-    outputBuffer = (float*)malloc(maxFrames *sizeof(float));
-    log2n = log2f(maxFrames);
-    n = 1 << log2n;
-    assert(n == maxFrames);
-    //  NSLog(@"maxFrames: %u", (unsigned int)maxFrames);
-    nOver2 = maxFrames/2;
-    bufferCapacity = maxFrames;
-    // NSLog(@"Buffer Capacity : %lu", bufferCapacity);
-    index = 0;
-    A.realp = (float *)malloc(nOver2 * sizeof(float));
-    // NSLog(@"A.realp: %f", A.realp);
-    A.imagp = (float *)malloc(nOver2 * sizeof(float));
-    // NSLog(@"A.imagp: %f", A.imagp);
-    fftSetup = vDSP_create_fftsetup(log2n, FFT_RADIX2);
-}
-
-
-#pragma mark -
-#pragma mark Audio Session/Graph Setup
-// Sets up the audio session based on the properties that were set in the init
-// method.
-- (void)initializeAudioSession {
-    // NSLog(@"initializeAudioSession called");
-    NSError	*err = nil;
-    AVAudioSession *session = [AVAudioSession sharedInstance];
-    
-    [session setPreferredHardwareSampleRate:sampleRate error:&err];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
-    [session setMode:AVAudioSessionModeMeasurement error:nil];
-    [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
-    [session setPreferredOutputNumberOfChannels:0 error:nil];
-    //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
-    [session setActive:YES error:&err];
-    
-    // After activation, update our sample rate. We need to update because there
-    // is a possibility the system cannot grant our request.
-    sampleRate = [session currentHardwareSampleRate];
-    // NSLog(@"sampleRate : %f", sampleRate);
-    
-    [self realFFTSetup];
-}
-
-
-// This method will create an AUGraph for either input or output.
-// Our application will never perform both operations simultaneously.
-- (void)createAUProcessingGraph {
-    //NSLog(@"createAUProcessingGraph called");
-    OSStatus err;
-    // Configure the search parameters to find the default playback output unit
-    // (called the kAudioUnitSubType_RemoteIO on iOS but
-    // kAudioUnitSubType_DefaultOutput on Mac OS X)
-    AudioComponentDescription ioUnitDescription;
-    ioUnitDescription.componentType = kAudioUnitType_Output;
-    ioUnitDescription.componentSubType = kAudioUnitSubType_RemoteIO;
-    ioUnitDescription.componentManufacturer = kAudioUnitManufacturer_Apple;
-    ioUnitDescription.componentFlags = 0;
-    ioUnitDescription.componentFlagsMask = 0;
-    
-    // Declare and instantiate an audio processing graph
-    NewAUGraph(&processingGraph);
-    
-    // Add an audio unit node to the graph, then instantiate the audio unit.
-    /*
-     An AUNode is an opaque type that represents an audio unit in the context
-     of an audio processing graph. You receive a reference to the new audio unit
-     instance, in the ioUnit parameter, on output of the AUGraphNodeInfo
-     function call.
-     */
-    AUNode ioNode;
-    AUGraphAddNode(processingGraph, &ioUnitDescription, &ioNode);
-    
-    AUGraphOpen(processingGraph); // indirectly performs audio unit instantiation
-    
-    // Obtain a reference to the newly-instantiated I/O unit. Each Audio Unit
-    // requires its own configuration.
-    AUGraphNodeInfo(processingGraph, ioNode, NULL, &ioUnit);
-    
-    // Initialize below.
-    __unsafe_unretained AURenderCallbackStruct callbackStruct = {0};
-    UInt32 enableInput;
-    //UInt32 enableOutput;
-    
-    // Enable input and disable output.
-    enableInput = 1;
-    //enableOutput = 0;
-    callbackStruct.inputProc = RenderFFTCallback;
-    callbackStruct.inputProcRefCon = (__bridge void*)self;
-    
-    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
-                               kAudioUnitScope_Input,
-                               kInputBus, &enableInput, sizeof(enableInput));
-//    
-//    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
-//                                kAudioUnitScope_Output,
-//                                kOutputBus, &enableOutput, sizeof(enableOutput));
-    
-    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_SetInputCallback,
-                               kAudioUnitScope_Input,
-                               kOutputBus, &callbackStruct, sizeof(callbackStruct));
-    
-    
-    // Set the stream format.
-    size_t bytesPerSample = [self ASBDForSoundMode];
-    
-     err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
-     kAudioUnitScope_Output,
-     kInputBus, &streamFormat, sizeof(streamFormat));
-    
-    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
-                               kAudioUnitScope_Input,
-                               kOutputBus, &streamFormat, sizeof(streamFormat));
-    
-    
-    
-    
-    // Disable system buffer allocation. We'll do it ourselves.
-    //UInt32 flag = 0;
-//    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
-//                                kAudioUnitScope_Output, 
-//                                kInputBus, &flag, sizeof(flag));
-    
-    
-    // Allocate AudioBuffers for use when listening.
-    // TODO: Move into initialization...should only be required once.
-    bufferList = (AudioBufferList *)malloc((sizeof(AudioBuffer) + sizeof(AudioBufferList))*2);
-    bufferList->mNumberBuffers = 1;
-    bufferList->mBuffers[0].mNumberChannels = 1;
-    
-    bufferList->mBuffers[0].mDataByteSize = 1024*bytesPerSample;
-    bufferList->mBuffers[0].mData = calloc(1024, bytesPerSample);
-}
-
-
-// Set the AudioStreamBasicDescription for listening to audio data. Set the
-// stream member var here as well.
-- (size_t)ASBDForSoundMode {
-    // NSLog(@"ASBDForSoundMode called");
-    AudioStreamBasicDescription asbd = {0};
-    size_t bytesPerSample;
-    bytesPerSample = sizeof(SInt16);
-    asbd.mFormatID = kAudioFormatLinearPCM;
-    asbd.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-    asbd.mBitsPerChannel = 8 * bytesPerSample;
-    asbd.mFramesPerPacket = 1;
-    asbd.mChannelsPerFrame = 1;
-    asbd.mBytesPerPacket = bytesPerSample * asbd.mFramesPerPacket;
-    asbd.mBytesPerFrame = bytesPerSample * asbd.mChannelsPerFrame;
-    asbd.mSampleRate = sampleRate;
-    
-    streamFormat = asbd;
-    [self printASBD:streamFormat];
-    
-    return bytesPerSample;
-}
-
-#pragma mark -
-#pragma mark Utility
-- (void)printASBD:(AudioStreamBasicDescription)asbd {
-    
-    char formatIDString[5];
-    UInt32 formatID = CFSwapInt32HostToBig (asbd.mFormatID);
-    bcopy (&formatID, formatIDString, 4);
-    formatIDString[4] = '\0';
-    
-    NSLog (@"  Sample Rate:         %10.0f",  asbd.mSampleRate);
-    NSLog (@"  Format ID:           %10s",    formatIDString);
-    NSLog (@"  Format Flags:        %10X",    (unsigned int)asbd.mFormatFlags);
-    NSLog (@"  Bytes per Packet:    %10d",    (unsigned int)asbd.mBytesPerPacket);
-    NSLog (@"  Frames per Packet:   %10d",    (unsigned int)asbd.mFramesPerPacket);
-    NSLog (@"  Bytes per Frame:     %10d",    (unsigned int)asbd.mBytesPerFrame);
-    NSLog (@"  Channels per Frame:  %10d",    (unsigned int)asbd.mChannelsPerFrame);
-    NSLog (@"  Bits per Channel:    %10d",    (unsigned int)asbd.mBitsPerChannel);
-}
-
-
-
-// *************** Singleton *********************
-
-static RIOInterface *sharedInstance = nil;
+static CDVPitchDetection *sharedInstance = nil;
 
 #pragma mark -
 #pragma mark Singleton Methods
-+ (RIOInterface *)sharedInstance
++ (CDVPitchDetection *)sharedInstance
 {
     if (sharedInstance == nil) {
-        sharedInstance = [[RIOInterface alloc] init];
+        sharedInstance = [[CDVPitchDetection alloc] init];
     }
     
     return sharedInstance;
 }
-
-+ (id)allocWithZone:(NSZone *)zone {
-    @synchronized(self) {
-        if (sharedInstance == nil) {
-            sharedInstance = [super allocWithZone:zone];
-            return sharedInstance;  // assignment and return on first allocation
-        }
-    }
-    return nil; // on subsequent allocation attempts return nil
-}
-
-- (id)copyWithZone:(NSZone *)zone {
-    return self;
-}
-
-//- (id)retain {
-//    return self;
-//}
-//
-//- (unsigned)retainCount {
-//    return UINT_MAX;  // denotes an object that cannot be released
-//}
-//
-//- (oneway void)release {
-//    //do nothing
-//}
-//
-//- (id)autorelease {
-//    return self;
-//}
 
 @end
