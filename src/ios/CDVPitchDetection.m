@@ -130,7 +130,7 @@ static int loop = 0;
         
         int x = 0;
         float buffer = 100;
-        if(self.registeredFrequencies != NULL){
+        if(loop == -1){
             NSLog(@"Inside If not null");
             for (x = 0; x < [self.registeredFrequencies count]; x++) {
                 float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
@@ -164,7 +164,7 @@ static int loop = 0;
                     
                 }
             } else {
-                if(loop != -1){
+                if(loop == 0){
                     [cid stopListener:nil];
                 }
             }
