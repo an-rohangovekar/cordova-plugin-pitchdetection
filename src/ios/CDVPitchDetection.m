@@ -130,7 +130,7 @@ static int loop = 0;
         
         int x = 0;
         float buffer = 100;
-        if(loop == -1){
+        if(self.registeredFrequencies != NULL){
             NSLog(@"Inside If not null");
             for (x = 0; x < [self.registeredFrequencies count]; x++) {
                 float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
@@ -148,7 +148,7 @@ static int loop = 0;
                 }
             }
         } else {
-            if(loop != 0){
+            //if(loop != 0){
                 
                 float minFrequency = matchFrequency - buffer;
                 float maxFrequency = matchFrequency + buffer;
@@ -163,11 +163,11 @@ static int loop = 0;
                     [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
                     
                 }
-            } else {
-                if(loop == 0){
-                    [cid stopListener:nil];
-                }
-            }
+            // } else {
+            //     if(loop == 0){
+            //         [cid stopListener:nil];
+            //     }
+            // }
         }
     }
 }
@@ -180,7 +180,7 @@ static int loop = 0;
         NSData *jData = [NSJSONSerialization dataWithJSONObject:freqData options:0 error:nil];
         NSString *jsData = [[NSString alloc] initWithData:jData encoding:NSUTF8StringEncoding];
         NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", jsData];
-        NSLog( @"js: %@",js );
+        //NSLog( @"js: %@",js );
         NSLog( @"frequencyChangedWithValue: %@",jData );
         //loop -= 1;
         [cid.commandDelegate evalJs:js];
