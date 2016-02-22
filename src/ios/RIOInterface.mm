@@ -256,11 +256,23 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     [session setPreferredHardwareSampleRate:sampleRate error:&err];
     [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionMixWithOthers error:&err];
     [session setMode:AVAudioSessionModeMeasurement error:nil];
-    [session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+    //[session overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
     [session setPreferredOutputNumberOfChannels:0 error:nil];
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     [session setActive:YES error:&err];
-    
+    //Select Built In Mic Even if Headset is connected
+    NSArray *inputs = [session availableInputs];
+    NSLog(@"Available Inputs = %@",inputs);
+    AVAudioSessionPortDescription* builtInMic = nil;
+    for(AVAudioSessionPortDescription* port in inputs)
+    {
+        if ([port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+            builtInMic = port;
+            break;
+        }
+    }
+    //NSLog(@"Input Source set as %@",builtInMic);
+    [session setPreferredInput:builtInMic error:nil];
     // After activation, update our sample rate. We need to update because there
     // is a possibility the system cannot grant our request.
     sampleRate = [session currentHardwareSampleRate];
