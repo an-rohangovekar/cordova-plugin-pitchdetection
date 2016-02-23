@@ -130,45 +130,59 @@ static int loop = 0;
         
         int x = 0;
         float buffer = 100;
-        if(self.registeredFrequencies != NULL){
-            NSLog(@"Inside If not null");
-            for (x = 0; x < [self.registeredFrequencies count]; x++) {
-                float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
-                float minFrequency = frequency - buffer;
-                float maxFrequency = frequency + buffer;
-                
-                //  NSLog(@"minFrequency: %f", minFrequency);
-                //  NSLog(@"maxFrequency: %f", maxFrequency);
-                //   NSLog(@"newFrequency: %f", newFrequency);
-                
-                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                    self.currentFrequency = frequency;
-                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-                    break;
-                }
-            }
-        } else {
-            //if(loop != 0){
-                
-                float minFrequency = matchFrequency - buffer;
-                float maxFrequency = matchFrequency + buffer;
-                NSLog(@"minFrequency: %f", minFrequency);
-                NSLog(@"maxFrequency: %f", maxFrequency);
-                NSLog(@"newFrequency: %f", newFrequency);
-                
-                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                    NSLog(@"Inside Else %i",loop);
-                    self.currentFrequency = matchFrequency;
-                    loop -= 1;
-                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-                    
-                }
-            // } else {
-            //     if(loop == 0){
-            //         [cid stopListener:nil];
-            //     }
-            // }
+//        if(self.registeredFrequencies != NULL){
+//            NSLog(@"Inside If not null");
+//            for (x = 0; x < [self.registeredFrequencies count]; x++) {
+//                float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
+//                float minFrequency = frequency - buffer;
+//                float maxFrequency = frequency + buffer;
+//                
+//                //  NSLog(@"minFrequency: %f", minFrequency);
+//                //  NSLog(@"maxFrequency: %f", maxFrequency);
+//                //   NSLog(@"newFrequency: %f", newFrequency);
+//                
+//                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+//                    self.currentFrequency = frequency;
+//                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+//                    break;
+//                }
+//            }
+//        } else {
+//            if(loop != 0){
+//                
+//                float minFrequency = matchFrequency - buffer;
+//                float maxFrequency = matchFrequency + buffer;
+//                NSLog(@"minFrequency: %f", minFrequency);
+//                NSLog(@"maxFrequency: %f", maxFrequency);
+//                NSLog(@"newFrequency: %f", newFrequency);
+//                
+//                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+//                    NSLog(@"Inside Else %i",loop);
+//                    self.currentFrequency = matchFrequency;
+//                    loop -= 1;
+//                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+//                    
+//                }
+//            } else {
+//                if(loop != -1){
+//                    [cid stopListener:nil];
+//                }
+//            }
+//        }
+        float minFrequency = matchFrequency - buffer;
+        float maxFrequency = matchFrequency + buffer;
+        NSLog(@"minFrequency: %f", minFrequency);
+        NSLog(@"maxFrequency: %f", maxFrequency);
+        NSLog(@"newFrequency: %f", newFrequency);
+
+        if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+            NSLog(@"Inside Else %i",loop);
+            self.currentFrequency = matchFrequency;
+            loop -= 1;
+            [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+            
         }
+
     }
 }
 
@@ -180,8 +194,6 @@ static int loop = 0;
         NSData *jData = [NSJSONSerialization dataWithJSONObject:freqData options:0 error:nil];
         NSString *jsData = [[NSString alloc] initWithData:jData encoding:NSUTF8StringEncoding];
         NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", jsData];
-        //NSLog( @"js: %@",js );
-        NSLog( @"frequencyChangedWithValue: %@",jData );
         //loop -= 1;
         [cid.commandDelegate evalJs:js];
         //matchFrequency = 0.0;
