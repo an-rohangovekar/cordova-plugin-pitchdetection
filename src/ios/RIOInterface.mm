@@ -261,18 +261,18 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     //[session setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     [session setActive:YES error:&err];
     //Select Built In Mic Even if Headset is connected
-    NSArray *inputs = [session availableInputs];
-    NSLog(@"Available Inputs = %@",inputs);
-    AVAudioSessionPortDescription* builtInMic = nil;
-    for(AVAudioSessionPortDescription* port in inputs)
-    {
-        if ([port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
-            builtInMic = port;
-            break;
-        }
-    }
-    //NSLog(@"Input Source set as %@",builtInMic);
-    [session setPreferredInput:builtInMic error:nil];
+//    NSArray *inputs = [session availableInputs];
+//    NSLog(@"Available Inputs = %@",inputs);
+//    AVAudioSessionPortDescription* builtInMic = nil;
+//    for(AVAudioSessionPortDescription* port in inputs)
+//    {
+//        if ([port.portType isEqualToString:AVAudioSessionPortBuiltInMic]) {
+//            builtInMic = port;
+//            break;
+//        }
+//    }
+//    NSLog(@"Input Source set as %@",builtInMic);
+//    [session setPreferredInput:builtInMic error:nil];
     // After activation, update our sample rate. We need to update because there
     // is a possibility the system cannot grant our request.
     sampleRate = [session currentHardwareSampleRate];
@@ -330,10 +330,10 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
                                kAudioUnitScope_Input,
                                kInputBus, &enableInput, sizeof(enableInput));
-//    
-//    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
-//                                kAudioUnitScope_Output,
-//                                kOutputBus, &enableOutput, sizeof(enableOutput));
+    //
+    //    err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_EnableIO,
+    //                                kAudioUnitScope_Output,
+    //                                kOutputBus, &enableOutput, sizeof(enableOutput));
     
     err = AudioUnitSetProperty(ioUnit, kAudioOutputUnitProperty_SetInputCallback,
                                kAudioUnitScope_Input,
@@ -343,9 +343,9 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     // Set the stream format.
     size_t bytesPerSample = [self ASBDForSoundMode];
     
-     err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
-     kAudioUnitScope_Output,
-     kInputBus, &streamFormat, sizeof(streamFormat));
+    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
+                               kAudioUnitScope_Output,
+                               kInputBus, &streamFormat, sizeof(streamFormat));
     
     err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_StreamFormat,
                                kAudioUnitScope_Input,
@@ -356,9 +356,9 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
     
     // Disable system buffer allocation. We'll do it ourselves.
     //UInt32 flag = 0;
-//    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer, 
-//                                kAudioUnitScope_Output, 
-//                                kInputBus, &flag, sizeof(flag));
+    //    err = AudioUnitSetProperty(ioUnit, kAudioUnitProperty_ShouldAllocateBuffer,
+    //                                kAudioUnitScope_Output,
+    //                                kInputBus, &flag, sizeof(flag));
     
     
     // Allocate AudioBuffers for use when listening.
