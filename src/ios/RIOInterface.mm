@@ -17,7 +17,7 @@
 @synthesize audioSessionDelegate;
 @synthesize sampleRate;
 @synthesize frequency;
-
+CDVPitchDetection* pitch;
 
 float MagnitudeSquared(float x, float y);
 void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t capacity);
@@ -62,6 +62,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 - (void)startListening:(CDVPitchDetection*)aListener {
     
     NSLog(@"StartListening called");
+    pitch = [CDVPitchDetection sharedInstance];
     self.listener = aListener;
     [self createAUProcessingGraph];
     [self initializeAndStartProcessingGraph];
@@ -89,6 +90,7 @@ void ConvertInt16ToFloat(RIOInterface* THIS, void *buf, float *outputBuf, size_t
 - (void)stopProcessingGraph {
     NSLog(@"Stopping Listener");
     AUGraphStop(processingGraph);
+    
 }
 
 #pragma mark -
@@ -181,7 +183,7 @@ OSStatus RenderFFTCallback (void					*inRefCon,
         //NSLog(@"Buffer Capacity : %d", bufferCapacity);
         // Update the UI with our newly acquired frequency value.
         //THIS->listener = [CDVPitchDetection sharedInstance];
-        CDVPitchDetection* pitch = [CDVPitchDetection sharedInstance];
+        
         [pitch frequencyChangedWithValue:bin*(THIS->sampleRate/bufferCapacity)];
         //printf("Dominant frequency: %f \n", bin*(THIS->sampleRate/bufferCapacity));
     }
