@@ -32,6 +32,7 @@
 
 - (void)frequencyChangedWithValue:(float)newFrequency;
 - (void)updateFrequency;
+- (void) unmatchedFrequencies;
 #pragma mark Singleton Methods
 + (CDVPitchDetection *)sharedInstance;
 
