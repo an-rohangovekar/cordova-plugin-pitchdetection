@@ -32,12 +32,12 @@ static CDVPitchDetection * cid= nil;
 
 -(void)pluginInitialize{
     NSLog(@"initialize");
-    self.rioRef = [RIOInterface sharedInstance];
+    // self.rioRef = [RIOInterface sharedInstance];
     self.registeredFrequencies = [[NSMutableArray alloc] initWithCapacity:10];
-    matchFrequency = 0.0;
+    // matchFrequency = 0.0;
     // matchFrequency = 0.0;
     // [rioRef setSampleRate:44100];
-    [rioRef setFrequency:16000];
+    //[rioRef setFrequency:16000];
     // [rioRef initializeAudioSession];
     // NSLog(@"after initialize");
     // cid = self;
@@ -78,7 +78,8 @@ static CDVPitchDetection * cid= nil;
     NSString *frequencyString = [command.arguments objectAtIndex:0];
     float frequency = [frequencyString floatValue];
     BOOL found = FALSE;
-    
+    self.rioRef = [RIOInterface sharedInstance];
+    matchFrequency = 0.0;
     NSLog(@"registerFrequency called %f",frequency);
     for (int x = 0; x < [self.registeredFrequencies count]; x++) {
         float _frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
