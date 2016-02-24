@@ -1,26 +1,26 @@
-var exec = require('cordova/exec');
+var exec = require('cordova/exec'),
+cordova = require('cordova');
 
 exports.registerFrequency = function (frequency, success, fail) {
-    console.log("registerFrequency  " + frequency);
+    //console.log("registerFrequency  " + frequency);
     var freq = frequency.toString();
     exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq]);
 };
 
 exports.startListener = function () {
-    console.log( "startListener ");
-    var success = function(){console.log('start listener success');};
-    var error = function(){console.log('start listener error');};
+    //console.log( "startListener ");
+    var success = function(){};
+    var error = function(){};
     exec(success, error, "CDVPitchDetection", "startListener", []);
 };
 
 exports.stopListener = function () {
-    var success = function(){console.log('stop listener success');};
-    var error = function(){console.log('stop listener error');};
+    var success = function(){};
+    var error = function(){};
     exec(success, error, "CDVPitchDetection", "stopListener", []);
 };
 
 exports.executeCallback = function (frequency) {
-    console.log("frequency: ",frequency);
     var event = document.createEvent('Events');
     event.initEvent('audiofrequency', true, true);
     event.data = frequency;
