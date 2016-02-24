@@ -67,7 +67,7 @@ static CDVPitchDetection * cid= nil;
     matchFrequency = 0.0;
     [self.registeredFrequencies removeAllObjects];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
-    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -99,7 +99,7 @@ static CDVPitchDetection * cid= nil;
     NSLog(@"registerfrequency : %f", matchFrequency);
     NSLog(@"Delegate Class %@", NSStringFromClass([self.commandDelegate class]));
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
-    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
