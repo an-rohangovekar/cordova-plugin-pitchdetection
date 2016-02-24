@@ -16,7 +16,8 @@
 @synthesize registeredFrequencies;
 static float matchFrequency = 0.0;
 static CDVPitchDetection * cid= nil;
-
+static bool otherfreq = false;
+static int count = 0;
 //- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView
 //{
 //    self = [super initWithWebView:theWebView];
@@ -65,6 +66,8 @@ static CDVPitchDetection * cid= nil;
     isListening = NO;
     [rioRef stopListening];
     matchFrequency = 0.0;
+    otherfreq = false;
+    count = 0;
     [self.registeredFrequencies removeAllObjects];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
     //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -96,6 +99,11 @@ static CDVPitchDetection * cid= nil;
         [self.registeredFrequencies addObject:frequencyString];
         matchFrequency = [frequencyString floatValue];
     }
+    bool a = [[command.arguments objectAtIndex:1] boolValue];
+    NSLog(@"A = %d",a);
+    if(a){
+        otherfreq = true;
+    }
     NSLog(@"registerfrequency : %f", matchFrequency);
     NSLog(@"Delegate Class %@", NSStringFromClass([self.commandDelegate class]));
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
@@ -116,74 +124,46 @@ static CDVPitchDetection * cid= nil;
 
 // This method gets called by the rendering function. Do something with the new frequency
 - (void)frequencyChangedWithValue:(float)newFrequency{
-    NSLog(@"frequencyChangeWithValue called %f", newFrequency);
+    //NSLog(@"frequencyChangeWithValue called %f", newFrequency);
     //	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     //
     //
     //	[pool drain];
     //    pool = nil;
-    NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
+   // NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
     @autoreleasepool {
-        NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
+       // NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
         
         int x = 0;
         float buffer = 100;
-        //        if(self.registeredFrequencies != NULL){
-        //            NSLog(@"Inside If not null");
-        //            for (x = 0; x < [self.registeredFrequencies count]; x++) {
-        //                float frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
-        //                float minFrequency = frequency - buffer;
-        //                float maxFrequency = frequency + buffer;
-        //
-        //                //  NSLog(@"minFrequency: %f", minFrequency);
-        //                //  NSLog(@"maxFrequency: %f", maxFrequency);
-        //                //   NSLog(@"newFrequency: %f", newFrequency);
-        //
-        //                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-        //                    self.currentFrequency = frequency;
-        //                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-        //                    break;
-        //                }
-        //            }
-        //        } else {
-        //            if(loop != 0){
-        //
-        //                float minFrequency = matchFrequency - buffer;
-        //                float maxFrequency = matchFrequency + buffer;
-        //                NSLog(@"minFrequency: %f", minFrequency);
-        //                NSLog(@"maxFrequency: %f", maxFrequency);
-        //                NSLog(@"newFrequency: %f", newFrequency);
-        //
-        //                if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-        //                    NSLog(@"Inside Else %i",loop);
-        //                    self.currentFrequency = matchFrequency;
-        //                    loop -= 1;
-        //                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-        //
-        //                }
-        //            } else {
-        //                if(loop != -1){
-        //                    [cid stopListener:nil];
-        //                }
-        //            }
-        //        }
+ 
         float minFrequency = matchFrequency - buffer;
         float maxFrequency = matchFrequency + buffer;
-        NSLog(@"minFrequency: %f", minFrequency);
-        NSLog(@"maxFrequency: %f", maxFrequency);
-        NSLog(@"newFrequency: %f", newFrequency);
+
         
         if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
             self.currentFrequency = matchFrequency;
             [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
             
+        } else {
+            NSLog(@"minFrequency: %f", minFrequency);
+            NSLog(@"maxFrequency: %f", maxFrequency);
+            NSLog(@"newFrequency: %f", newFrequency);
+            NSLog(@"otherfreq: %d", count);
+            if(otherfreq){
+                count++;
+                if(count > 4){
+                    self.currentFrequency = newFrequency;
+                    [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
+                }
+            }
         }
         
     }
 }
 
 - (void)updateFrequency {
-    NSLog( @"updateFrequency called %f",self.currentFrequency);
+    //NSLog( @"updateFrequency called %f",self.currentFrequency);
     @autoreleasepool {
         NSDictionary* freqData = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:self.currentFrequency] forKey:@"frequency"];
         //NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", freqData];
@@ -198,6 +178,21 @@ static CDVPitchDetection * cid= nil;
     //[pool drain];
     //pool = nil;
     
+}
+
+- (void) otherFrequencyUpdate {
+    NSLog( @"otherFrequencyUpdate called %f",self.currentFrequency);
+    @autoreleasepool {
+        NSDictionary* freqData1 = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:self.currentFrequency] forKey:@"frequency"];
+        //NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.executeCallback('%@')", freqData];
+        NSData *jData1= [NSJSONSerialization dataWithJSONObject:freqData1 options:0 error:nil];
+        NSString *jsData1 = [[NSString alloc] initWithData:jData1 encoding:NSUTF8StringEncoding];
+        NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.otherfrequency('%@')", jsData1];
+        [cid.commandDelegate evalJs:js];
+        count = 0;
+        //matchFrequency = 0.0;
+    }
+
 }
 
 static CDVPitchDetection *sharedInstance = nil;
