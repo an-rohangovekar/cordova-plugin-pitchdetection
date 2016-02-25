@@ -54,7 +54,7 @@ static int count = 0;
     isListening = YES;
     [rioRef startListening:self];
     NSLog(@"Start LIstener");
-    
+    otherfreq = true;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     cid = self;
@@ -77,35 +77,20 @@ static int count = 0;
 
 - (void)registerFrequency:(CDVInvokedUrlCommand*)command {
     
-    NSLog(@"registerFrequency called %@", self.registeredFrequencies);
     NSString *frequencyString = [command.arguments objectAtIndex:0];
     float frequency = [frequencyString floatValue];
-    BOOL found = FALSE;
     self.rioRef = [RIOInterface sharedInstance];
     matchFrequency = 0.0;
     NSLog(@"registerFrequency called %f",frequency);
-    for (int x = 0; x < [self.registeredFrequencies count]; x++) {
-        float _frequency = [[self.registeredFrequencies objectAtIndex:x] floatValue];
-        
-        NSLog(@"frequency : %f", frequency);
-        NSLog(@"_frequency : %f", _frequency);
-        
-        if ( _frequency == frequency ) {
-            found = TRUE;
-        }
-    }
-    NSLog(@"fpund %d",found);
-    if ( !found ) {
-        [self.registeredFrequencies addObject:frequencyString];
-    }
+    [self.registeredFrequencies addObject:frequencyString];
     matchFrequency = [frequencyString floatValue];
     bool a = [[command.arguments objectAtIndex:1] boolValue];
     NSLog(@"A = %d",a);
     if(a){
         otherfreq = true;
+        NSLog(@"otherfreq : %d", otherfreq);
     }
     NSLog(@"registerfrequency : %f", matchFrequency);
-    NSLog(@"Delegate Class %@", NSStringFromClass([self.commandDelegate class]));
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
     //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -134,13 +119,13 @@ static int count = 0;
     @autoreleasepool {
        // NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
         
-        int x = 0;
+        //int x = 0;
         float buffer = 100;
  
         float minFrequency = matchFrequency - buffer;
         float maxFrequency = matchFrequency + buffer;
 
-        
+        NSLog(@"otherfreq: %d", otherfreq);
         if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
             self.currentFrequency = matchFrequency;
             [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
