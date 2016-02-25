@@ -68,6 +68,7 @@ static int count = 0;
     otherfreq = NO;
     count = 0;
     [self.registeredFrequencies removeAllObjects];
+    cid = NULL;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
     //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -114,17 +115,18 @@ static int count = 0;
     //
     //	[pool drain];
     //    pool = nil;
-   // NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
+    // NSLog( @"frequencyChangedWithValue: %f", matchFrequency);
     @autoreleasepool {
-       // NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
+        // NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
         
         //int x = 0;
         float buffer = 100;
- 
+        
         float minFrequency = matchFrequency - buffer;
         float maxFrequency = matchFrequency + buffer;
-
-        NSLog(@"otherfreq: %d", otherfreq);
+        
+        NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
+        NSLog(@"newFrequency: %f", newFrequency);
         if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
             self.currentFrequency = matchFrequency;
             [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
@@ -132,12 +134,14 @@ static int count = 0;
         } else {
             NSLog(@"minFrequency: %f", minFrequency);
             NSLog(@"maxFrequency: %f", maxFrequency);
-            NSLog(@"newFrequency: %f", newFrequency);
-            NSLog(@"otherfreq: %d", count);
+            
+            
             if(otherfreq){
+                NSLog(@"otherfreq: %d", count);
                 count++;
                 if(count > 4){
                     self.currentFrequency = newFrequency;
+                    count = 0;
                     [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
                 }
             }
@@ -173,10 +177,10 @@ static int count = 0;
         NSString *jsData1 = [[NSString alloc] initWithData:jData1 encoding:NSUTF8StringEncoding];
         NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.otherfrequency('%@')", jsData1];
         [cid.commandDelegate evalJs:js];
-        count = 0;
+        
         //matchFrequency = 0.0;
     }
-
+    
 }
 
 static CDVPitchDetection *sharedInstance = nil;
