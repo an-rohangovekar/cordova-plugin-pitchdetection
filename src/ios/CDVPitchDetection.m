@@ -99,6 +99,7 @@ static int count = 0;
         [self.registeredFrequencies addObject:frequencyString];
         matchFrequency = [frequencyString floatValue];
     }
+    matchFrequency = [frequencyString floatValue];
     bool a = [[command.arguments objectAtIndex:1] boolValue];
     NSLog(@"A = %d",a);
     if(a){
