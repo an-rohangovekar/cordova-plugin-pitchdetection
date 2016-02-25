@@ -128,8 +128,10 @@ static int count = 0;
         NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
         NSLog(@"newFrequency: %f", newFrequency);
         if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-            self.currentFrequency = matchFrequency;
-            [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+            if(!otherfreq){
+                self.currentFrequency = matchFrequency;
+                [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+            }
             
         } else {
             NSLog(@"minFrequency: %f", minFrequency);
