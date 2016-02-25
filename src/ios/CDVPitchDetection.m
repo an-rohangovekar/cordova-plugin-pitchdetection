@@ -54,7 +54,6 @@ static int count = 0;
     isListening = YES;
     [rioRef startListening:self];
     NSLog(@"Start LIstener");
-    otherfreq = true;
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     cid = self;
@@ -66,7 +65,7 @@ static int count = 0;
     isListening = NO;
     [rioRef stopListening];
     matchFrequency = 0.0;
-    otherfreq = false;
+    otherfreq = NO;
     count = 0;
     [self.registeredFrequencies removeAllObjects];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener stopped"];
@@ -87,7 +86,7 @@ static int count = 0;
     bool a = [[command.arguments objectAtIndex:1] boolValue];
     NSLog(@"A = %d",a);
     if(a){
-        otherfreq = true;
+        otherfreq = YES;
         NSLog(@"otherfreq : %d", otherfreq);
     }
     NSLog(@"registerfrequency : %f", matchFrequency);
