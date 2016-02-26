@@ -7,11 +7,11 @@ exports.registerFrequency = function (frequency, mismatch, success, fail) {
     exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq,mismatch]);
 };
 
-exports.startListener = function () {
+exports.startListener = function (a) {
     //console.log( "startListener ");
     var success = function(){};
     var error = function(){};
-    exec(success, error, "CDVPitchDetection", "startListener", []);
+    exec(success, error, "CDVPitchDetection", "startListener", [a]);
 };
 
 exports.stopListener = function () {
