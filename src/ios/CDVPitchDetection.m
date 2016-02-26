@@ -16,8 +16,9 @@
 @synthesize registeredFrequencies;
 static float matchFrequency = 0.0;
 static CDVPitchDetection * cid= nil;
-static bool otherfreq = false;
+static bool otherfreq = NO;
 static int count = 0;
+static bool allfreq = NO;
 //- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView
 //{
 //    self = [super initWithWebView:theWebView];
@@ -53,7 +54,8 @@ static int count = 0;
     NSLog(@"after initialize");
     isListening = YES;
     [rioRef startListening:self];
-    NSLog(@"Start LIstener");
+    allfreq = [[command.arguments objectAtIndex:0] boolValue];
+    NSLog(@"Start LIstener - %d",allfreq);
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     cid = self;
@@ -66,6 +68,7 @@ static int count = 0;
     [rioRef stopListening];
     matchFrequency = 0.0;
     otherfreq = NO;
+    allfreq = NO;
     count = 0;
     [self.registeredFrequencies removeAllObjects];
     cid = NULL;
@@ -127,28 +130,37 @@ static int count = 0;
         
         NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
         NSLog(@"newFrequency: %f", newFrequency);
-        if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-            if(!otherfreq){
-                self.currentFrequency = matchFrequency;
+         NSLog(@"allfreq frequencyChangedWithValue: %d", allfreq);
+        if (allfreq) {
+            self.currentFrequency = matchFrequency;
+            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
                 [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+            } else {
+                [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
             }
-            
         } else {
-            NSLog(@"minFrequency: %f", minFrequency);
-            NSLog(@"maxFrequency: %f", maxFrequency);
-            
-            
-            if(otherfreq){
-                NSLog(@"otherfreq: %d", count);
-                count++;
-                if(count > 4){
-                    self.currentFrequency = newFrequency;
-                    count = 0;
-                    [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
+            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+                if(!otherfreq){
+                    self.currentFrequency = matchFrequency;
+                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+                }
+                
+            } else {
+                NSLog(@"minFrequency: %f", minFrequency);
+                NSLog(@"maxFrequency: %f", maxFrequency);
+                
+                
+                if(otherfreq){
+                    NSLog(@"otherfreq: %d", count);
+                    count++;
+                    if(count > 4){
+                        self.currentFrequency = newFrequency;
+                        count = 0;
+                        [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
+                    }
                 }
             }
         }
-        
     }
 }
 
@@ -179,7 +191,6 @@ static int count = 0;
         NSString *jsData1 = [[NSString alloc] initWithData:jData1 encoding:NSUTF8StringEncoding];
         NSString *js = [NSString stringWithFormat:@"window.plugins.pitchDetect.otherfrequency('%@')", jsData1];
         [cid.commandDelegate evalJs:js];
-        
         //matchFrequency = 0.0;
     }
     
