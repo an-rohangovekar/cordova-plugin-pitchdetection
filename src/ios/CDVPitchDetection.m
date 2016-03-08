@@ -138,29 +138,31 @@ static bool allfreq = NO;
             } else {
                 [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
             }
-        } else {
-            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                if(!otherfreq){
-                    self.currentFrequency = matchFrequency;
-                    [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
-                }
+        } 
+        // else {
+        //     if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+        //         if(!otherfreq){
+        //             self.currentFrequency = matchFrequency;
+        //             [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+        //         }
                 
-            } else {
-                NSLog(@"minFrequency: %f", minFrequency);
-                NSLog(@"maxFrequency: %f", maxFrequency);
+        //     } 
+        //     else {
+        //         NSLog(@"minFrequency: %f", minFrequency);
+        //         NSLog(@"maxFrequency: %f", maxFrequency);
                 
                 
-                if(otherfreq){
-                    NSLog(@"otherfreq: %d", count);
-                    count++;
-                    if(count > 4){
-                        self.currentFrequency = newFrequency;
-                        count = 0;
-                        [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
-                    }
-                }
-            }
-        }
+        //         if(otherfreq){
+        //             NSLog(@"otherfreq: %d", count);
+        //             count++;
+        //             if(count > 4){
+        //                 self.currentFrequency = newFrequency;
+        //                 count = 0;
+        //                 [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 
