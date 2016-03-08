@@ -123,7 +123,7 @@ static bool allfreq = NO;
         // NSLog( @"frequencyChangedWithValue: %f", matchFrequency );
         
         //int x = 0;
-        float buffer = 100;
+        float buffer = 10;
         
         float minFrequency = matchFrequency - buffer;
         float maxFrequency = matchFrequency + buffer;
