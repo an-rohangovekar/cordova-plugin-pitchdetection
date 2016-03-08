@@ -128,9 +128,9 @@ static bool allfreq = NO;
         float minFrequency = matchFrequency - buffer;
         float maxFrequency = matchFrequency + buffer;
         
-        NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
+        //NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
         NSLog(@"newFrequency: %f", newFrequency);
-         NSLog(@"allfreq frequencyChangedWithValue: %d", allfreq);
+        //NSLog(@"allfreq frequencyChangedWithValue: %d", allfreq);
         if (allfreq) {
             self.currentFrequency = matchFrequency;
             if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
