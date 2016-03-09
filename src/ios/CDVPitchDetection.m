@@ -123,7 +123,7 @@ static bool allfreq = NO;
         //NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
         NSLog(@"newFrequency: %f", newFrequency);
         NSLog(@"allfreq frequencyChangedWithValue: %f", self.currentFrequency);
-       // if (allfreq) {
+        // if (allfreq) {
         if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
             self.currentFrequency = matchFrequency;
             NSLog(@"matched frequency : %f", self.currentFrequency );
