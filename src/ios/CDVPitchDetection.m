@@ -135,6 +135,7 @@ static bool allfreq = NO;
             
             if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
                 self.currentFrequency = matchFrequency;
+                NSLog(@"allfreq : %f", self.currentFrequency );
             } else {
                 self.currentFrequency = newFrequency;
                // [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:YES];
