@@ -1,10 +1,10 @@
 var exec = require('cordova/exec'),
 cordova = require('cordova');
 
-exports.registerFrequency = function (frequency, mismatch, success, fail) {
+exports.registerFrequency = function (frequency, success, fail) {
     //console.log("registerFrequency  " + frequency);
     var freq = frequency.toString();
-    exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq,mismatch]);
+    exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq]);
 };
 
 exports.startListener = function (a) {
