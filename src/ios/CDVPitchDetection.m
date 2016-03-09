@@ -54,8 +54,6 @@ static bool allfreq = NO;
     NSLog(@"after initialize");
     isListening = YES;
     [rioRef startListening:self];
-    allfreq = [[command.arguments objectAtIndex:0] boolValue];
-    NSLog(@"Start LIstener - %d",allfreq);
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"listener started"];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     cid = self;
@@ -87,12 +85,6 @@ static bool allfreq = NO;
     NSLog(@"registerFrequency called %f",frequency);
     [self.registeredFrequencies addObject:frequencyString];
     matchFrequency = [frequencyString floatValue];
-    bool a = [[command.arguments objectAtIndex:1] boolValue];
-    NSLog(@"A = %d",a);
-    if(a){
-        otherfreq = YES;
-        NSLog(@"otherfreq : %d", otherfreq);
-    }
     NSLog(@"registerfrequency : %f", matchFrequency);
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:self.registeredFrequencies];
     //[pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -130,31 +122,30 @@ static bool allfreq = NO;
         
         //NSLog(@"otherfreq frequencyChangedWithValue: %d", otherfreq);
         NSLog(@"newFrequency: %f", newFrequency);
-        //NSLog(@"allfreq frequencyChangedWithValue: %d", allfreq);
-        if (allfreq) {
-            
-            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                self.currentFrequency = matchFrequency;
-                NSLog(@"allfreq : %f", self.currentFrequency );
-            } else {
-                self.currentFrequency = newFrequency;
-               // [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:YES];
-            }
-            [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:YES];
-        } 
+        NSLog(@"allfreq frequencyChangedWithValue: %f", self.currentFrequency);
+       // if (allfreq) {
+        if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+            self.currentFrequency = matchFrequency;
+            NSLog(@"matched frequency : %f", self.currentFrequency );
+        } else {
+            self.currentFrequency = newFrequency;
+            // [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:YES];
+        }
+        [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:YES];
+        //}
         // else {
         //     if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
         //         if(!otherfreq){
         //             self.currentFrequency = matchFrequency;
         //             [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
         //         }
-                
-        //     } 
+        
+        //     }
         //     else {
         //         NSLog(@"minFrequency: %f", minFrequency);
         //         NSLog(@"maxFrequency: %f", maxFrequency);
-                
-                
+        
+        
         //         if(otherfreq){
         //             NSLog(@"otherfreq: %d", count);
         //             count++;
