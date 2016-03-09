@@ -134,9 +134,9 @@ static bool allfreq = NO;
         if (allfreq) {
             self.currentFrequency = matchFrequency;
             if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:NO];
+                [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:YES];
             } else {
-                [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:NO];
+                [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:YES];
             }
         } 
         // else {
