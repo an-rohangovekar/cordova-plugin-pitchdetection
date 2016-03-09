@@ -7,7 +7,7 @@ exports.registerFrequency = function (frequency, success, fail) {
     exec(success, fail, "CDVPitchDetection", "registerFrequency", [freq]);
 };
 
-exports.startListener = function (a) {
+exports.startListener = function () {
     //console.log( "startListener ");
     var success = function(){};
     var error = function(){};
