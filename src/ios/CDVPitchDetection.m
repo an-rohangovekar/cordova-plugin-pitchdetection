@@ -132,12 +132,14 @@ static bool allfreq = NO;
         NSLog(@"newFrequency: %f", newFrequency);
         //NSLog(@"allfreq frequencyChangedWithValue: %d", allfreq);
         if (allfreq) {
-            self.currentFrequency = matchFrequency;
-            //if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
-                [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:YES];
-            //} else {
+            
+            if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
+                self.currentFrequency = matchFrequency;
+            } else {
+                self.currentFrequency = newFrequency;
                // [self performSelectorOnMainThread:@selector(otherFrequencyUpdate) withObject:nil waitUntilDone:YES];
-            //}
+            }
+            [self performSelectorOnMainThread:@selector(updateFrequency) withObject:nil waitUntilDone:YES];
         } 
         // else {
         //     if ( newFrequency >= minFrequency && newFrequency <= maxFrequency ) {
